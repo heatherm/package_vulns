@@ -21,6 +21,18 @@
       - [MacOS](#macos-1)
       - [Arch Linux:](#arch-linux)
 
+
+## Intro
+This is an opinionated rails 6 application providing a great base to develop on. 
+
+For the MVP, we've included a landing page and a simple ujs search route with a happy and sad path. When given a non-existant package, there is an elegant failover. No caching exists at this time, but we would use redis for this as an integrated Heroku plugin given more time. We chose not to include a front end view frame work as it was too heavy for the task of rendering a tree.
+
+The main functionality was test driven between PackageDependencyDownloader and PackageDependencyDecorator. The downloader looks only at the first order dependencies from npmjs registry for a given package. The PackageDependencyDecorator converts the plain json into a structure used by bootstraps tree visualizer.
+
+The app is configured for use with rspec for unit and capybara for integration specs. Tests are utilizing real recorded http responses via the VCR gem. Tests are integrated and run on commit via heroku CI. Logging is provided via Librato for system level information and papertrail for app level information.
+
+The goal of this app is to expose the reader to my priories as a developer: robust base, great documentation, strong 3rd party choices, clean objects, good seperation, simplicity, and reasonable guards/fail-safes. 
+
 ## Setup
 
 See the conventions appendix for an explanation of some of the notation used in

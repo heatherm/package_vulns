@@ -1,13 +1,24 @@
-javascript:
-  /* This little bit of silliness is here to ensure our js feature specs are working. Remove at will. */
-  $(document).ready(function() {
-    $(".jumbotron p:last").after("<p>Enjoy!</p>")
-  });
+link crossorigin="anonymous" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" rel="stylesheet" /
+link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.css" rel="stylesheet" /
+script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"
+script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.js"
 
 .jumbotron
-  h1 Hello, world!
+  h1 VulnFindr
   br
-  p Welcome to your newly generated rails application...
-  p Meander around the code to see what's been done for you. Many small, and a few not-so-small, customizations have been made.
-  p Custom generator templates create views that are bootstrap compatible and specs that are factory-aware and follow best practices.
-  p Your application is ready for easy deployment to heroku.
+  p In order to identify vulnerabilities in certain packages, please provide the name a of package for analysis:
+  form accept-charset="UTF-8" action="#{search_path}" data-remote="true" method="post"
+    .form-row.align-items-center
+      .col-auto
+        label.sr-only for="q"  Package
+        input#q.form-control.mb-2 placeholder=("async") name="package" type="text" /
+      .col-auto
+        label.sr-only for="version"  Version
+        .input-group.mb-2
+          .input-group-prepend
+            .input-group-text @
+          input#version.form-control placeholder="2.0.1" name="version" type="text" /
+      .col-auto
+        input.btn.btn-primary.mb-2 data-disable-with="Search" name="commit" type="submit" value="Search" /
+
+  div#dependencies.treeview

@@ -1,143 +1,266 @@
-# Package Vulns
+# VulnFindr
 
-...
+- [VulnFindr](#gehl)
+  - [Setup](#setup)
+    - [Requirements](#requirements)
+    - [Configuration](#configuration)
+    - [First Run](#first-run)
+  - [Included tooling](#included-tooling)
+    - [JS Toolchain](#js-toolchain)
+    - [Tests](#tests)
+    - [Deployment](#deployment)
+    - [Heroku](#heroku)
+  - [Appendix](#appendix)
+    - [Conventions](#conventions)
+    - [Setting up Ruby](#setting-up-ruby)
+    - [Setting up Node JS](#setting-up-node-js)
+    - [Setting up PostgreSQL](#setting-up-postgresql)
+      - [MacOS](#macos)
+      - [Linux](#linux)
+    - [Setting up chromedriver](#setting-up-chromedriver)
+      - [MacOS](#macos-1)
+      - [Arch Linux:](#arch-linux)
 
-Generated with [Raygun](https://github.com/carbonfive/raygun).
+## Setup
 
-# Development
-
-## Getting Started
+See the conventions appendix for an explanation of some of the notation used in
+these instructions.
 
 ### Requirements
 
-To run the specs or fire up the server, be sure you have these installed (and running):
+You must have the following installed and available on your machine:
 
-* Ruby 2.6 (see [.ruby-version](.ruby-version)).
-* PostgreSQL 11.2+ (`brew install postgresql`).
-* Heroku CLI (`brew install heroku`).
+- **Ruby 2.6.3**
+- **Node JS 12.x**
+- **PostgreSQL 11.x**
+- **chromedriver** and **Google Chrome**
 
-### First Time Setup
+Instructions for setting up each of the above are included in the [appendix](#appendix)
+section.
 
-#### `bin/setup`
+### Configuration
 
-After cloning, run [./bin/setup](bin/setup) to install missing gems and prepare the database.
+There are two main configuration files that are of concern:
 
-Note, `rake db:sample_data` (run as part of setup) loads a small set of data for development. Check out
-[db/sample_data.rb](db/sample_data.rb) for details.
+- `.env` - configuration that's common across all environments that you intend
+  to run on your machine (e.g. database connection)
+- `.env.development` - configuration that's specific to the development
+  environment that you intend to run on your machine (e.g. API credentials)
 
-#### `.env`
+There exists a `.env.test` which is checked in to source control, used to
+configure the test equivalents for whatever is in `.env.development`. As tests
+will be written such that they don't make any calls to external services, **it
+should not contain any real credentials.** Instead, use dummy credentials and
+stub any external calls using the test suite's features.
 
-The `bin/setup` script will create a `.env` file that defines settings for your local environment. Do not check this into source control. Refer to the [environment variables](#environment-variables) section below for what can be specified in `.env`.
+Setting up the configuration is a matter of copying the supplied examples and
+filling in the gaps, as follows:
 
-### Running the Specs
+```sh
+$ cp .env.example .env
+# edit .env with username and password
 
-To run all Ruby and Javascript specs.
+$ cp .env.development.example .env.development
+# edit .env.development with username and password
+```
 
-    $ ./bin/rake
 
-Note: `./bin/rake` runs the springified version of rake (there's a `./bin/rspec` and `./bin/rails` too). You can add
-`./bin` to your PATH too, then you'll always use the springified bins when they exist. See
-[rails/spring](https://github.com/rails/spring) for additional information.
+### First Run
 
-### Running the Application Locally
+Install the Ruby and JS dependencies
 
-The easiest way to run the app is using `heroku local`. This starts all the processes defined in `Procfile`, including the Rails server.
+```sh
+$ npm install -g yarn
+$ bundle install
+$ yarn install
+```
 
-    $ heroku local
-    $ open http://localhost:3000
+Prepare the database
 
-## Conventions
+```sh
+$ rails db:setup
+```
 
-### Git
+Run the test suite
 
-* Branch `development` is auto-deployed to acceptance.
-* Branch `master` is auto-deployed to production.
-* Create feature branches off of `development` using the naming convention
-  `(features|chores|bugs)/a-brief-description-######`, where ###### is the tracker id.
-* Rebase your feature branch before merging into `development` to produce clean/compact merge bubbles.
-* Always retain merge commits when merging into `development` (e.g. `git merge --no-ff branchname`).
-* Use `git merge development` (fast-forward, no merge commit) from `master`.
-* Craft atomic commits that make sense on their own and can be easily cherry-picked or reverted if necessary.
+```sh
+$ rspec spec
+```
 
-### Code Style
+Start a development server and check out the app in a browser
 
-Rubocop is configured to enforce the style guide for this project.
+```sh
+$ heroku local
+```
 
-## Additional/Optional Development Details
+## Included tooling
 
-### Code Coverage (local)
+### JS Toolchain
 
-Coverage for the ruby specs:
+The more complicated front end components are built using the
+JS stack included in newer Rails versions, built around Webpack
+rather than sprockets.
 
-    $ COVERAGE=true rspec
+This mainly refers to the map based interfaces that are used in
+the app. You can find the source for these in `app/javascripts`
 
-Code coverage is reported to Code Climate on every CI build so there's a record of trending.
+### Tests
 
-### Using Guard
+For testing the ruby parts of the app, the suite is built using
+the usual RSpec tooling. Test files are located in `spec/**/*.rb`
 
-Guard is configured to run ruby specs, and also listen for livereload connections.
+For JS unit testing, Jest is included. Test files are located
+in `spec/javascripts/**/*.js`
 
-    $ bundle exec guard
+Integration testing is done using Capybara and the chrome
+webdriver. Integration tests are located in
+`spec/features/**/*.rb`
 
-### Using Mailcatcher
+To run the ruby unit tests and integration tests, use `bundle exec rspec`
 
-    $ gem install mailcatcher
-    $ mailcatcher
-    $ open http://localhost:1080/
+To run the JS unit tests, use `yarn exec jest`
 
-Learn more at [mailcatcher.me](http://mailcatcher.me/). And please don't add mailcatcher to the Gemfile.
+### Deployment
 
-### Using ChromeDriver
+Using Heroku review apps and CI. Auto merge setup to staging environment on merging of branches into master.
 
-The ChromeDriver version used in this project is maintained by the [webdrivers](https://github.com/titusfortner/webdrivers) gem.  This is means that the
-feature specs are not running against the ChromeDriver installed previously on the machine, such as by Homebrew.
+Remote (App)
+Staging https://git.heroku.com/vulnfinder-staging-eu.git (https://vulnfindr-staging-eu.herokuapp.com/)
 
-### Headed vs headless Chrome
+### Heroku
 
-System specs marked with `js: true` run using headless Chrome by default, in the interest of speed. When writing or troubleshooting specs, you may want to run the normal (i.e. "headed") version of Chrome so you can see what is being rendered and use the Chrome developer tools.
+Dynos - EU location, Heroku-18 stack
+Postgres - Hobby Dev $7 in staging and Standard $50 in production
 
-To do so, specify `HEADLESS=false` in your environment when running the specs. For example:
+## Appendix
 
-    $ HEADLESS=false bin/rspec spec/system
+### Conventions
 
-### Continuous Integration/Deployment with CircleCI and Heroku
+This document and other documentation in this project may use the following
+conventions:
 
-This project is configured for continuous integration with CircleCI, see [.circleci/config.yml](.circleci/config.yml) for details.
+**`$`** is used to denote commands that are executed in your shell
+(zsh/fish/bash etc.)
 
-On successful builds, Heroku will trigger a deployment via its
-[GitHub Integration](https://devcenter.heroku.com/articles/github-integration#automatic-deploys).
+**`>`** is used to denote commands that are executed in a REPL or other
+interactive tool (e.g. ruby console, psql session.)
 
-# Server Environments
+**`#`** is used to annotate the instructions or describe what the reader will
+see when the instructions are followed. It doesn't hold any functional
+significance.
 
-### Hosting
+For example:
 
-Acceptance and Production are hosted on Heroku under the _email@example.com_ account.
+```sh
+$ bundle exec irb
+> puts "foo"
+# you'll see ruby repeat "foo" back to you
+> exit
 
-### Environment Variables
+$ psql -h localhost
+> select * from table;
+```
 
-Several common features and operational parameters can be set using environment variables.
+Context will often indicate what the `>` prompt represents, but it may be
+represented in unambiguous ways such as:
 
-**Required**
+```sh
+$ bundle exec irb
+(irb)> puts "foo"
+# you'll see ruby repeat "foo" back to you
+(irb)> exit
 
-* `SECRET_KEY_BASE` - Secret key base for verifying signed cookies. Should be 30+ random characters and secret!
+$ psql -h localhost
+(psql)> SELECT * FROM table;
+```
 
-**Optional**
+### Setting up Ruby
 
-* `HOSTNAME` - Canonical hostname for this application. Other incoming requests will be redirected to this hostname.
-* `FORCE_SSL` - Require all requests to come over a secure connection (default: false).
-* `BASIC_AUTH_PASSWORD` - Enable basic auth with this password.
-* `BASIC_AUTH_USER` - Set a basic auth username (not required, password enables basic auth).
-* `RACK_TIMEOUT_SERVICE_TIMEOUT` - Terminate requests that take longer than this time (default: 15s).
-* `ASSET_HOST` - Asset host for static assets (e.g. CDN) (default: none).
-* `PORT` - Port to listen on (default: 3000).
-* `WEB_CONCURRENCY` - Number of puma workers to spawn (default: 1).
-* `RAILS_MAX_THREADS` - Threads per worker (default: 5).
-* `RAILS_MIN_THREADS` - Threads per worker (default: 5).
-* `DB_POOL` - Number of DB connections per pool (i.e. per worker) (default: RAILS_MAX_THREADS or 5).
-* `RAILS_LOG_TO_STDOUT` - Log to standard out, good for Heroku (default: false).
-* `RAILS_SERVE_STATIC_FILES` - Serve static assets, good for Heroku (default: false).
+A platform-independent tool [asdf](https://github.com/asdf-vm/asdf) is useful
+for managing Rubies on development machines.
 
-### Third Party Services
+Follow the [installation instructions for
+asdf](https://asdf-vm.com/#/core-manage-asdf-vm), and then install the Ruby
+plugin and Ruby 2.6.3 as below
 
-* Heroku for hosting.
-* CircleCI for continuous integration.
+```sh
+$ asdf plugin-add ruby
+
+$ asdf install ruby 2.6.3
+
+$ asdf local ruby 2.6.3
+
+$ ruby -v
+# You should see a string like "ruby 2.6.3p62 (2019-04-16 revision 67580) [x86_64-linux]"
+```
+
+### Setting up Node JS
+
+Once again, [asdf](https://github.com/asdf-vm/asdf) is useful for managing Node
+JS versions on development machines.
+
+Follow the [installation instructions for
+asdf](https://asdf-vm.com/#/core-manage-asdf-vm), and then install the Node JS
+plugin and Node JS 12.2.0 as below
+
+```sh
+$ asdf plugin-add nodejs
+
+$ bash $ASDF_DIR/plugins/nodejs/bin/import-release-team-keyring
+
+$ asdf install nodejs 12.2.0
+
+$ asdf local nodejs 12.2.0
+
+$ node -v
+# You should see "v12.2.0" printed
+```
+
+### Setting up PostgreSQL
+
+#### MacOS
+
+```sh
+$ brew install postgresql
+$ brew services start postgresql
+```
+
+#### Linux
+
+It's possible to use your distro's package to run a PostgreSQL server, however
+it may be difficult to get the correct version.
+
+Alternatively, you can start one using Docker:
+
+Ensure you have your distribution's packages installed and service started
+(consult the [Docker documentation](https://docs.docker.com/))
+
+```sh
+$ docker create \
+  --env POSTGRES_USER=$USER \
+  --name postgres \
+  --network host \
+  postgres:11.x
+
+$ docker start postgres
+# You should now have a server available and the ability to access it.
+
+$ psql -h localhost
+# If it was set up correctly, you should now have a psql shell.
+# You can connect using the same username as your login one, with no password.
+# Try running some SQL commands:
+
+(psql)> SELECT NOW();
+```
+
+### Setting up chromedriver
+
+Install your system's package for `chromedriver`
+
+#### MacOS
+
+`brew cask install chromedriver`
+
+#### Arch Linux:
+
+Install `chromedriver` from the AUR

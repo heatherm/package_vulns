@@ -2,7 +2,7 @@ source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 # Heroku uses the ruby version to configure your application"s runtime.
-ruby "2.6.0"
+ruby "2.6.3"
 
 # Back-endy
 gem "bootsnap", require: false
@@ -22,6 +22,8 @@ gem "uglifier"
 
 # Tools
 gem "awesome_print"
+gem "http"
+gem "oj"
 
 # Env specific dependencies...
 
@@ -58,5 +60,7 @@ group :test do
   # gem "capybara-email"
   gem "selenium-webdriver"
   gem "simplecov"
+  gem "vcr"
   gem "webdrivers"
+  gem "webmock"
 end
